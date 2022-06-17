@@ -16,7 +16,7 @@ Before looking through the work, I recommend you to first read the following lit
 Requirements:
 * [Pascal Voc](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/)
 * [Salience map](https://drive.google.com/file/d/19AjSmgdMlIZH4FXVZ5zjlUZcoZZCkwrI/view)
-
+* [Pretrained model for ResNet38 (on ImageNet)] (https://drive.google.com/file/d/15F13LEL5aO45JU-j45PYjzv5KW5bn_Pn/view)
 ###
 
 Steps of experiments:
@@ -25,3 +25,8 @@ Steps of experiments:
    *  Train the seeds
    * Post processing with CRF
    * Evaluation
+###
+
+Our main contribution is made on the region_utils.py that implements a memory bank to perform the foreground-background contrastive learning.
+
+You can download the checkpoint with: [download](https://drive.google.com/file/d/1fSWXSmMZA09fh_NG-dg3slMi9MRBr6L9/view?usp=sharing)
