@@ -22,6 +22,6 @@ Requirements:
 Steps of experiments:
 * You can directly run the code by excuting the script script_contrast.sh on the script folder.
 *  The steps consist of 
-**  Train the seeds
-** Post processing with CRF
-** Evaluation
+   *  Train the seeds
+   * Post processing with CRF
+   * Evaluation
