@@ -1,10 +1,10 @@
 {'num_workers': 8, 'voc12_root': '/root/Dataset/VOC/VOCdevkit/VOC2012/', 'train_list': 'voc12/train_aug.txt', 'val_list': 'voc12/val.txt', 'infer_list': 'voc12/train.txt', 'chainer_eval_set': 'train', 'cam_network': 'net.resnet50_cam', 'cam_crop_size': 512, 'cam_batch_size': 16, 'cam_num_epoches': 5, 'cam_learning_rate': 0.1, 'cam_weight_decay': 0.0001, 'cam_eval_thres': 0.25, 'cam_scales': (1.0, 0.5, 1.5, 2.0), 'amn_network': 'net.resnet50_amn', 'amn_crop_size': 512, 'amn_batch_size': 16, 'amn_num_epoches': 5, 'eps': 0.4, 'conf_fg_thres': 0.45, 'conf_bg_thres': 0.15, 'irn_network': 'net.resnet50_irn', 'irn_crop_size': 512, 'irn_batch_size': 32, 'irn_num_epoches': 3, 'irn_learning_rate': 0.1, 'irn_weight_decay': 0.0001, 'beta': 10, 'exp_times': 8, 'ins_seg_bg_thres': 0.25, 'sem_seg_bg_thres': 0.25, 'log_name': 'sample_train_eval', 'cam_weights_name': 'sess/res50_cam.pth', 'amn_weights_name': 'sess/res50_amn.pth', 'irn_weights_name': 'sess/res50_irn.pth', 'cam_out_dir': 'result/cam', 'ir_label_out_dir': 'result/ir_label', 'amn_cam_out_dir': 'result/amn_cam', 'amn_ir_label_out_dir': 'result/amn_ir_label', 'sem_seg_out_dir': 'result/sem_seg', 'ins_seg_out_dir': 'result/ins_seg', 'train_cam_pass': False, 'make_cam_pass': False, 'eval_cam_pass': False, 'cam_to_ir_label_pass': False, 'train_amn_pass': False, 'make_amn_cam_pass': False, 'eval_amn_cam_pass': False, 'amn_cam_to_ir_label_pass': False, 'train_irn_pass': False, 'make_ins_seg_pass': False, 'eval_ins_seg_pass': False, 'make_sem_seg_pass': True, 'eval_sem_seg_pass': True}
-step.make_sem_seg_labels: Tue Jul 26 21:43:40 2022
-step.eval_sem_seg: Tue Jul 26 22:34:46 2022
-0.04003283692391224 0.0536073051591629
-0.15979730092560004 0.12441635818188708
-{'iou': array([0.90635986, 0.75013436, 0.44613974, 0.81606742, 0.70621146,
-       0.68591243, 0.8308811 , 0.76924201, 0.88679351, 0.37118588,
-       0.81701273, 0.6803726 , 0.84793604, 0.80104998, 0.79861568,
-       0.73420274, 0.63521579, 0.8866456 , 0.64328538, 0.65686757,
-       0.5519548 ]), 'miou': 0.7248612702746277}
+step.make_sem_seg_labels: Thu Jul 28 04:41:29 2022
+step.eval_sem_seg: Thu Jul 28 05:04:20 2022
+0.04134931985202328 0.05202248013534361
+0.15253945656748988 0.12862892869820328
+{'iou': array([0.9066282 , 0.74887795, 0.40530626, 0.81990872, 0.68319007,
+       0.74633329, 0.85905791, 0.79145597, 0.85714284, 0.36338335,
+       0.86629946, 0.59680753, 0.8431945 , 0.81999783, 0.79611333,
+       0.73802056, 0.62811356, 0.89599379, 0.63319701, 0.67637428,
+       0.60786409]), 'miou': 0.7277743092713701}

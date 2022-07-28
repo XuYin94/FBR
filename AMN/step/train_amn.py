@@ -5,7 +5,7 @@ from torch.backends import cudnn
 cudnn.enabled = True
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
-from region_utils import Bank_contrast_loss, get_contrast_loss
+from region_utils import Bank_contrast_loss, get_contrast_loss,Compled_reco
 import importlib
 
 import voc12.dataloader
@@ -122,7 +122,7 @@ def run(args):
 
     avg_meter = pyutils.AverageMeter()
 
-    # bg_bank=Bank_contrast_loss()
+    reco_loss=Compled_reco()
     best_acc=0.0
     for ep in range(total_epochs):
         loader_iter = iter(train_data_loader)
@@ -145,7 +145,7 @@ def run(args):
             label_amn = pack['label'].long().cuda(non_blocking=True)
             label_cls = pack['label_cls'].cuda(non_blocking=True)
 
-            logit, fg_fea = model(img, label_cls)
+            logit, loss_sim,fg_fea,bg_fea= model(img, label_cls)
             # loss_bg_seg = F.binary_cross_entropy(torch.sigmoid(bg_pre[:, 0]), get_background_label(logit, label_cls))
 
             B, C, H, W = logit.shape
@@ -161,22 +161,24 @@ def run(args):
             loss_pcl = balanced_cross_entropy(logit, label_amn, given_labels)
 
 
-            loss_reco = get_contrast_loss(logit, fg_fea)
-            loss = loss_pcl + loss_reco  # +0.1*loss_bg_seg
+            loss_fg_reco,loss_bg_reco = get_contrast_loss(logit, fg_fea,bg_fea,reco_loss)
+            loss = loss_pcl + 0.1*loss_sim+loss_fg_reco+loss_bg_reco
 
             loss.backward()
 
             optimizer.step()
 
             avg_meter.add({'loss_pcl': loss_pcl.item()})
-            # avg_meter.add({'loss_sim': loss_sim.mean().item()})
-            # avg_meter.add({'loss_wseg': loss_nce_contrast.mean().item()})
-            avg_meter.add({'loss_reco': loss_reco.item()})
+            avg_meter.add({'loss_sim': loss_sim.mean().item()})
+            avg_meter.add({'loss_fg': loss_fg_reco.mean().item()})
+            avg_meter.add({'loss_bg': loss_bg_reco .item()})
             # avg_meter.add({'loss_bg': loss_bg_seg.item()})
             # | BG_SEG: {avg_meter.pop('loss_bg'):.4f}
             pbar.set_description(f"[{ep + 1}/{total_epochs}] "
                                  f"PCL: [{avg_meter.pop('loss_pcl'):.4f}"
-                                 f"|RECO: {avg_meter.pop('loss_reco'):.4f}]")
+                                 f"|Sim: [{avg_meter.pop('loss_sim'):.4f}"
+                                 f"|Fg_reco: {avg_meter.pop('loss_fg'):.4f}"
+                                 f"|Bg_reco: {avg_meter.pop('loss_bg'):.4f}]")
 
         with torch.no_grad():
             model.eval()
@@ -191,7 +193,7 @@ def run(args):
 
                 img = img.cuda()
 
-                logit, __ = model(img, pack['label_cls'].cuda())
+                logit, __,__,__= model(img, pack['label_cls'].cuda())
 
                 size = img.shape[-2:]
                 strided_up_size = imutils.get_strided_up_size(size, 16)

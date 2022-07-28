@@ -38,7 +38,7 @@ class Net(nn.Module):
         self.stage3 = nn.Sequential(self.resnet50.layer3)
         self.stage4 = nn.Sequential(self.resnet50.layer4)
         self.proj_fg = nn.Conv2d(2048, 128, 1, bias=False)
-        # self.proj_bg = nn.Conv2d(2048, 128, 1, bias=False)
+        self.proj_bg = nn.Conv2d(2048, 128, 1, bias=False)
         # self.bg_bn = nn.BatchNorm2d(128)
         # self.bg_classifier = nn.Conv2d(128, 1, 1, bias=False)
         # self.dropout7 = nn.Dropout(0.5)
@@ -51,15 +51,15 @@ class Net(nn.Module):
             nn.Dropout(0.1),
             _ASPP(in_ch=2048, out_ch=21, rates=astrous_rates)
         )
-        # torch.nn.init.xavier_uniform_(self.bg_classifier.weight)
+        
         torch.nn.init.xavier_uniform_(self.proj_fg.weight)
-        # torch.nn.init.xavier_uniform_(self.proj_bg.weight)
+        torch.nn.init.xavier_uniform_(self.proj_bg.weight)
         # torch.nn.init.xavier_uniform_(self.bg_classifier.weight)
         # self.bg_bn.weight.data.fill_(1.)
         # self.bg_bn.bias.data.fill_(1e-4)
 
         self.backbone = nn.ModuleList([self.stage1, self.stage2, self.stage3, self.stage4])
-        self.newly_added = nn.ModuleList([self.proj_fg, self.classifier, self.label_enc])
+        self.newly_added = nn.ModuleList([self.proj_fg,self.proj_bg, self.classifier, self.label_enc])
 
     def forward(self, img, label_cls):
 
@@ -72,9 +72,11 @@ class Net(nn.Module):
         x = x * y
 
         fg_feats = F.relu(self.proj_fg(x.clone()), inplace=True)
+        bg_feats=F.relu(self.proj_bg(x.clone()), inplace=True)
+        loss_sim=self.cosine_loss(fg_feats,bg_feats)
         logit = self.classifier(x)
 
-        return logit, fg_feats
+        return logit, loss_sim,fg_feats,bg_feats
 
     def train(self, mode=True):
         for p in self.resnet50.conv1.parameters():
