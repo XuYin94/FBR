@@ -30,5 +30,5 @@ Steps of experiments:
 Our main contribution is made on the region_utils.py that implements a memory bank to perform the foreground-background contrastive learning.
 
 You can download the checkpoint with: 
-*[wseg](https://drive.google.com/file/d/1fSWXSmMZA09fh_NG-dg3slMi9MRBr6L9/view?usp=sharing)
-*[AMN](https://drive.google.com/file/d/1hmfbVggHaPTwDQPrjas9x7aR77pURHld/view?usp=sharing) w/ [IRN](https://drive.google.com/file/d/1hmfbVggHaPTwDQPrjas9x7aR77pURHld/view?usp=sharing)
+1. [wseg](https://drive.google.com/file/d/1fSWXSmMZA09fh_NG-dg3slMi9MRBr6L9/view?usp=sharing)
+2. [AMN](https://drive.google.com/file/d/1hmfbVggHaPTwDQPrjas9x7aR77pURHld/view?usp=sharing) w/ [IRN](https://drive.google.com/file/d/1hmfbVggHaPTwDQPrjas9x7aR77pURHld/view?usp=sharing)
