@@ -31,4 +31,5 @@ Our main contribution is made on the region_utils.py that implements a memory ba
 
 You can download the checkpoint with: 
 1. [wseg](https://drive.google.com/file/d/1fSWXSmMZA09fh_NG-dg3slMi9MRBr6L9/view?usp=sharing)
-2. [AMN](https://drive.google.com/file/d/1hmfbVggHaPTwDQPrjas9x7aR77pURHld/view?usp=sharing) w/ [IRN](https://drive.google.com/file/d/1hmfbVggHaPTwDQPrjas9x7aR77pURHld/view?usp=sharing)
+2. [AMN_pascal](https://drive.google.com/file/d/1762JhjDd-ckcCxnmD3OepCt2xylFoZ3G/view?usp=sharing) w/ [IRN](https://drive.google.com/file/d/1VNpipFLRbVzi6qNLy1E0Pjd8oh_zsIjE/view?usp=sharing)
+2. [AMN_coco](https://drive.google.com/file/d/1hFW_L-HXUcjy3ecSc0rxfNNlonifHGf0/view?usp=sharing) 
