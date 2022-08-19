@@ -33,7 +33,7 @@ def do_python_eval(predict_folder, gt_folder, name_list, num_cls=21, input_type=
                 h, w = list(predict_dict.values())[0].shape
                 tensor = np.zeros((21, h, w), np.float32)
                 for key in predict_dict.keys():
-                    tensor[key+1] = predict_dict[key]
+                    tensor[key] = predict_dict[key]
                 tensor[0, :, :] = threshold
                 predict = np.argmax(tensor, axis=0).astype(np.uint8)
 

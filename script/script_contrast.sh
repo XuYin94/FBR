@@ -14,17 +14,17 @@ BASE_WEIGHT=${WEIGHT_ROOT}/ilsvrc-cls_rna-a1_cls1000_ep-0001.params
 
 
 # train classification network with Contrastive Learning
-#CUDA_VISIBLE_DEVICES=${GPU} python3 contrast_train.py \
-  #--session ${SESSION} \
-  #--network network.${BACKBONE} \
-  #--data_root ${IMG_ROOT} \
-  #--saliency_root ${SAL_ROOT} \
-  #--weights ${BASE_WEIGHT} \
-  #--crop_size 448 \
-  #--tau 0.4 \
-  #--max_iters 10000 \
-  #--iter_size 2 \
-  #--batch_size 8
+CUDA_VISIBLE_DEVICES=${GPU} python3 contrast_train.py \
+  --session ${SESSION} \
+  --network network.${BACKBONE} \
+  --data_root ${IMG_ROOT} \
+  --saliency_root ${SAL_ROOT} \
+  --weights ${BASE_WEIGHT} \
+  --crop_size 448 \
+  --tau 0.4 \
+  --max_iters 10000 \
+  --iter_size 2 \
+  --batch_size 8
 
 
 # 2. inference CAM
@@ -53,4 +53,4 @@ CUDA_VISIBLE_DEVICES=${GPU} python3 eval.py \
     --list data/voc12/${DATA}_id.txt \
     --gt_dir '/root/Dataset/VOC/VOCdevkit/VOC2012/SegmentationClassAug' \
     --logfile ./train_log/${DATA}_eval.txt \
-    --predict_dir ./train_log/${SESSION}/result/cam_npy
+    --predict_dir ./train_log/${SESSION}/result/crf_png/crf_5_8

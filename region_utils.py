@@ -64,20 +64,13 @@ class Bank_contrast_loss(nn.Module):
         else:
             for i in valid_classes:
                 seg_hard_mask=(pseudo_label==i) & (indicator==255)
-                single_seg_hard_fea=f_fea[seg_hard_mask]
+                anchor_fea=f_fea[seg_hard_mask]
                 if seg_hard_mask.sum():
                     negative_fea_all = self.memo_bank.to(device)
                 else:
                     continue
-                # if seg_hard_mask.sum()>=self.nbr_query:
-                #     seg_hard_idx = torch.randint(
-                #         seg_hard_mask.sum(), size=(self.nbr_query,))
-                #     nbr_query=self.nbr_query
-                # else:
-                seg_hard_idx = torch.arange(seg_hard_mask.sum())
-                nbr_query=seg_hard_mask.sum()
-                #print(seg_hard_mask.sum())
-                anchor_fea=single_seg_hard_fea[seg_hard_idx]  ##
+                nbr_query=anchor_fea.shape[0]
+
                 postive_fea = prototypes[i]
                 with torch.no_grad():
                     negative_index=[]
@@ -93,150 +86,39 @@ class Bank_contrast_loss(nn.Module):
             return reco_loss/ (len(valid_classes))
 
 
-
-
-
-def label_onehot(inputs, nbr_category):
-    batch_size, im_h, im_w = inputs.shape
-    # remap invalid pixels (-1) into 0, otherwise we cannot create one-hot vector with negative labels.
-    # we will still mask out those invalid values in valid mask
-    # print(inputs.shape)
-    inputs = torch.relu(inputs)
-    outputs = torch.zeros([batch_size, nbr_category, im_h, im_w]).to(inputs.device)
-    return outputs.scatter_(1, inputs.unsqueeze(1), 1.0)
-
-
-def compute_cam_up(cam, label, b, w, h):
-    cam = F.interpolate(cam, (w, h), mode='bilinear', align_corners=False)
-    cam_up = cam.clone()
-    cam_up = cam_up * label.clone().view(b, 20, 1, 1)
-    cam_up = cam_up.cpu().data.numpy()
-    return cam_up
-
-
-def build_pseudo_label(cam, ori_cam,label, height, width, un_rate):
-    pos_cam_up = compute_cam_up(F.relu(cam), label, cam.shape[0], height, width, )
-    neg_cam_up = compute_cam_up(F.relu(-ori_cam), label, cam.shape[0], height, width, )
-    # indicator=-torch.sum(torch.softmax(cam_up,dim=1)*(torch.log(torch.softmax(cam_up,dim=1))+1e-10),dim=1).cuda()
-    # cam_up=cam_up.data.cpu().numpy()
-    pseudo_label = np.zeros((cam.shape[0], height, width))
-    # print(pseudo_label.shape)
-    #print(ori_cam.shape)
-    no_sure_mask = np.zeros((cam.shape[0], height, width))
-    pseudo_bgr_label = np.zeros((cam.shape[0], height, width))
-    for i in range(cam.shape[0]):
-        cam_up_single = pos_cam_up[i]
-        cam_up_single[cam_up_single< 0] = 0
-        cam_max = np.max(cam_up_single, (1,2), keepdims=True)
-        cam_min = np.min(cam_up_single, (1,2), keepdims=True)
-        cam_up_single[cam_up_single < cam_min+1e-5] = 0
-        norm_cam = (cam_up_single-cam_min-1e-5) / (cam_max - cam_min + 1e-5)
-        p_label, no_sure = compute_seg_label(norm_cam, un_rate)
-        pseudo_label[i] = p_label
-        no_sure_mask[i] = no_sure
-        cam_up_single = neg_cam_up[i]
-        norm_cam = cam_up_single / (np.max(cam_up_single, (1, 2), keepdims=True) + 1e-5)
-        norm_cam = np.sum(norm_cam, axis=0)
-        threshold = np.percentile(norm_cam.flatten(), 70)
-        pseudo_bgr_label[i] = norm_cam>threshold
-    pseudo_label = torch.from_numpy(pseudo_label).long().cuda()
-    label_mask = label_onehot(pseudo_label, 21).long().cuda()
-    no_sure_mask = torch.from_numpy(no_sure_mask).long().cuda()
-    pseudo_bgr_label = torch.from_numpy(pseudo_bgr_label).float().cuda()
-    return pseudo_label, label_mask, no_sure_mask, pseudo_bgr_label
-
-
-def compute_seg_label(norm_cam, percentile=0.4):
-    # fore_mask = np.zeros_like(norm_cam)
-    #print(norm_cam.shape)
-    bg_score = np.ones((1,norm_cam.shape[-2],norm_cam.shape[-1]))*0.26
-    #bg_score = np.power(1 - np.max(norm_cam, 0), 32)
-    #bg_score = np.expand_dims(bg_score, axis=0)
-    cam_all = np.concatenate((bg_score, norm_cam))
-    #print(cam_all.shape)
-    pseudo_label = np.argmax(cam_all, 0)
-    single_img_classes = np.unique(pseudo_label)
-    cam_sure_region = np.zeros_like(pseudo_label, dtype=bool)
-    for class_i in single_img_classes:
-        if class_i != 0:
-            class_not_region = (pseudo_label != class_i)
-            cam_class = cam_all[class_i, :, :]
-            cam_class[class_not_region] = 0
-            cam_class_order = cam_class[cam_class > 0.1]
-            cam_class_order = np.sort(cam_class_order)
-            confidence_pos = int(cam_class_order.shape[0] * 0.4)
-            confidence_value = cam_class_order[confidence_pos]
-            class_sure_region = (cam_class > confidence_value)
-            cam_sure_region = np.logical_or(cam_sure_region, class_sure_region)
-        else:
-            class_not_region = (pseudo_label != class_i)
-            cam_class = cam_all[class_i, :, :]
-            cam_class[class_not_region] = 0
-            # assert not np.isnan(cam_class).any()
-            class_sure_region = (cam_class > 0.8)
-            cam_sure_region = np.logical_or(cam_sure_region, class_sure_region)
-
-    cam_not_sure_region = ~cam_sure_region
-
-    return pseudo_label, cam_not_sure_region
-
-
 # --------------------------------------------------------------------------------
 # Define ReCo loss
 # --------------------------------------------------------------------------------
-def compute_reco_loss(fore_rep,no_sure_mask, pseudo_labels, fore_mask, strong_threshold=0.80, temp=0.5,
-                      num_queries=256, num_negatives=256):
-    batch_size, num_feat, im_w_, im_h = fore_rep.shape
+def compute_fg_reco_loss(fore_rep, no_sure_mask, pseudo_labels, prototype_list, temp=0.5, num_negatives=256):
     device = fore_rep.device
-    # pseudo_labels=torch.from_numpy(pseudo_labels).cuda(device)
-    pre_class = torch.unique(pseudo_labels).long()[1:]
-
-    # permute representation for indexing: batch x im_h x im_w x feature_channel
-    fore_rep = fore_rep.permute(0, 2, 3, 1)
-    #back_rep = back_rep.permute(0, 2, 3, 1)
-    # compute prototype (class mean representation) for each class across all valid pixels
+    __, dim = fore_rep.shape
+    no_sure_mask = no_sure_mask.view(-1)
+    pre_class = torch.unique(pseudo_labels).long()  # get aviable classes in the current batch
+    pre_class = pre_class[pre_class != 20]
+    current_prototype_list = prototype_list[pre_class]
     seg_feat_all_list = []
     seg_feat_hard_list = []
     seg_num_list = []
-    seg_proto_list = []
-    # print(no_sure_mask.shape)
-    # print(fore_mask.shape)
-
-    # valid_pixel_seg = fore_mask[:,0].bool()  # select binary mask for i-th class
-    # rep_mask_hard = no_sure_mask.bool() * valid_pixel_seg # select hard queries
-    # seg_proto_list.append(torch.mean(back_rep[valid_pixel_seg.bool()], dim=0, keepdim=True))
-    # seg_feat_all_list.append(fore_rep[valid_pixel_seg.bool()])
-    # seg_feat_hard_list.append(fore_rep[rep_mask_hard])
-    # seg_num_list.append(int(valid_pixel_seg.sum().item()))
-
     for i in pre_class:
-        valid_pixel_seg = fore_mask[:, i].bool()  # select binary mask for i-th class
-        # if i==0:
-        # rep_mask_hard =valid_pixel_seg
-
-        # else:
+        valid_pixel_seg = (pseudo_labels == i).bool()  # select binary mask for i-th class
         rep_mask_hard = no_sure_mask.bool() * valid_pixel_seg  # select hard queries
-        # print(rep_mask_hard.flatten().sum())
-        seg_proto_list.append(torch.mean(fore_rep[valid_pixel_seg.bool()], dim=0, keepdim=True))
         seg_feat_all_list.append(fore_rep[valid_pixel_seg.bool()])
         seg_feat_hard_list.append(fore_rep[rep_mask_hard])
         seg_num_list.append(int(valid_pixel_seg.sum().item()))
 
     # compute regional contrastive loss
     if len(seg_num_list) <= 1:  # in some rare cases, a small mini-batch might only contain 1 or no semantic class
-        reco_fg_loss=torch.tensor(0.0)
+        reco_fg_loss = torch.tensor(0.0)
     else:
         reco_fg_loss = torch.tensor(0.0)
-        seg_proto = torch.cat(seg_proto_list)
         valid_seg = len(seg_num_list)
         seg_len = torch.arange(valid_seg)
 
         for i in range(valid_seg):
             # sample hard queries
             if len(seg_feat_hard_list[i]) > 0:
-                seg_hard_idx = torch.randint(len(seg_feat_hard_list[i]), size=(num_queries,))
-                anchor_feat_hard = seg_feat_hard_list[i][seg_hard_idx]
-                anchor_feat = anchor_feat_hard
+                anchor_feat= seg_feat_hard_list[i]
+                nbr_query = anchor_feat.shape[0]
             else:  # in some rare cases, all queries in the current query class are easy
                 continue
 
@@ -246,7 +128,8 @@ def compute_reco_loss(fore_rep,no_sure_mask, pseudo_labels, fore_mask, strong_th
                 seg_mask = torch.cat(([seg_len[i:], seg_len[:i]]))
 
                 # compute similarity for each negative segment prototype (semantic class relation graph)
-                proto_sim = torch.cosine_similarity(seg_proto[seg_mask[0]].unsqueeze(0), seg_proto[seg_mask[1:]], dim=1)
+                proto_sim = torch.cosine_similarity(current_prototype_list[seg_mask[0]].unsqueeze(0),
+                                                    current_prototype_list[seg_mask[1:]], dim=1)
 
                 proto_prob = torch.softmax(proto_sim / temp, dim=0)
 
@@ -254,7 +137,7 @@ def compute_reco_loss(fore_rep,no_sure_mask, pseudo_labels, fore_mask, strong_th
                 negative_dist = torch.distributions.categorical.Categorical(probs=proto_prob)
                 # print(proto_prob)
 
-                samp_class = negative_dist.sample(sample_shape=[num_queries, num_negatives])
+                samp_class = negative_dist.sample(sample_shape=[nbr_query, num_negatives])
                 samp_num = torch.stack([(samp_class == c).sum(1) for c in range(len(proto_prob))], dim=1)
 
                 # sample negative indices from each negative class
@@ -264,42 +147,17 @@ def compute_reco_loss(fore_rep,no_sure_mask, pseudo_labels, fore_mask, strong_th
 
                 # index negative keys (from other classes)
                 negative_feat_all = torch.cat(seg_feat_all_list[i + 1:] + seg_feat_all_list[:i])
-                negative_feat = negative_feat_all[negative_index].reshape(num_queries, num_negatives, num_feat)
+                negative_feat = negative_feat_all[negative_index].reshape(nbr_query, num_negatives, dim)
 
-                # combine positive and negative keys: keys = [positive key | negative keys] with 1 + num_negative dim
-                positive_feat = seg_proto[i].unsqueeze(0).unsqueeze(0).repeat(num_queries, 1, 1)
+                # combine positive and negative keys
+                positive_feat = current_prototype_list[i].unsqueeze(0).unsqueeze(0).repeat(nbr_query, 1, 1)
                 all_feat = torch.cat((positive_feat, negative_feat), dim=1)
 
             seg_logits = torch.cosine_similarity(anchor_feat.unsqueeze(1), all_feat, dim=2)
-            reco_fg_loss = reco_fg_loss + F.cross_entropy(seg_logits / temp, torch.zeros(num_queries).long().to(device))
-        reco_fg_loss=reco_fg_loss/valid_seg
+            reco_fg_loss = reco_fg_loss + F.cross_entropy(seg_logits / temp, torch.zeros(nbr_query).long().to(device))
+        reco_fg_loss = reco_fg_loss / valid_seg
 
-    # bg_mask = (pseudo_labels == 0).bool()
-    # if (no_sure_mask.bool() * bg_mask).sum()>0:
-    #     bg_proto = torch.mean(back_rep[bg_mask], dim=0, keepdim=True)
-    #
-    #     bg_feat_hard = back_rep[no_sure_mask.bool() * bg_mask]
-    #     seg_feat_all_list = torch.cat(seg_feat_all_list)  ## foregorund features
-    #
-    #     bg_seg_hard_idx = torch.randint(len(bg_feat_hard), size=(num_queries,))
-    #     bg_anchor_feat_hard = bg_feat_hard[bg_seg_hard_idx]
-    #     bg_anchor_feat = bg_anchor_feat_hard
-    #     with torch.no_grad():
-    #         negative_index = []
-    #         for i in range(num_queries):
-    #             #print(bg_feat_all.shape)
-    #             negative_index += np.random.randint(low=0,
-    #                                                 high=seg_feat_all_list.shape[0],
-    #                                                 size=num_negatives).tolist()
-    #         negative_fg_feat = seg_feat_all_list[negative_index].reshape(num_queries, num_negatives, num_feat)
-    #         positive_bg_feat=bg_proto[0].unsqueeze(0).unsqueeze(0).repeat(num_queries, 1, 1)
-    #         bg_all_feat=torch.cat((negative_fg_feat,positive_bg_feat),dim=1)
-    #     seg_logits = torch.cosine_similarity(bg_anchor_feat.unsqueeze(1),bg_all_feat, dim=2)
-    #     reco_fg_bg_loss = F.cross_entropy(seg_logits / temp, torch.zeros(num_queries).long().to(device))
-    #
-    # else:
-    #     reco_fg_bg_loss=torch.tensor(0.0)
-    return reco_fg_loss#, reco_fg_bg_loss
+    return reco_fg_loss
 
 
 def negative_index_sampler(samp_num, seg_num_list):
