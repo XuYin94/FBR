@@ -1,15 +1,5 @@
 # Reco_WSSS
-This is Yin Xu's work for WSSS
-
-
-Before looking through the work, I recommend you to first read the following literature:
-###
-
-1. [Weakly Supervised Semantic Segmentation by Pixel-to-Prototype Contrast](https://arxiv.org/abs/2110.07110)
-
-2. [Railroad is not a Train: Saliency as Pseudo-pxiel Supervision for Weakly Supervised Semantic Segmentation](https://openaccess.thecvf.com/content/CVPR2021/papers/Lee_Railroad_Is_Not_a_Train_Saliency_As_Pseudo-Pixel_Supervision_for_CVPR_2021_paper.pdf)
-
-3. [Weakly Supervised Learning of Instance Segmentation with Inter-pixel Relations](https://arxiv.org/abs/1904.05044)
+This is Yin Xu's work for WSSS (under review)
 
 ###
 
@@ -25,11 +15,27 @@ Steps of experiments:
    *  Train the seeds
    * Post processing with CRF
    * Evaluation
-###
+   
 
-Our main contribution is made on the region_utils.py that implements a memory bank to perform the foreground-background contrastive learning.
+#Results and trained models 
 
-You can download the checkpoint with: 
-1. [wseg](https://drive.google.com/file/d/1fSWXSmMZA09fh_NG-dg3slMi9MRBr6L9/view?usp=sharing)
-2. [AMN_pascal](https://drive.google.com/file/d/1762JhjDd-ckcCxnmD3OepCt2xylFoZ3G/view?usp=sharing) w/ [IRN](https://drive.google.com/file/d/1VNpipFLRbVzi6qNLy1E0Pjd8oh_zsIjE/view?usp=sharing)
-2. [AMN_coco](https://drive.google.com/file/d/1hFW_L-HXUcjy3ecSc0rxfNNlonifHGf0/view?usp=sharing) 
+on Pascal Voc 2012
+
+|Method|train set|val set|test set|
+| ---- | ----    |  ---- |  ----  |
+|AMN|72.2|70.7|70.6|
+|+ours|73.1|71.8|[73.2](http://host.robots.ox.ac.uk:8080/anonymous/30LARO.html)|
+|PPC|73.6|72.6|73.6|
+|+ours|75.9|74.2|[74.9](http://host.robots.ox.ac.uk:8080/anonymous/BHSCOK.html)|
+
+on MS COCO 2014
+
+|Method|train set|val set|
+| ---- | ----    |  ---- |
+|AMN|-|44.7|
+|+ours|46.7|45.6|
+
+
+[Checkpoints](https://drive.google.com/file/d/1CKkKk72nowWnsVYFPxt9kNk50k3eWVu2/view?usp=sharing)
+
+[Pseudo labels](https://drive.google.com/file/d/1ZFowMQkvFBWQyPnlQC3WtPZr6ykFFLqb/view?usp=sharing)
