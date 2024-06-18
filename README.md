@@ -1,6 +1,8 @@
 # Reco_WSSS
-This is Yin Xu's work for WSSS (under review)
-
+This is the implementation of Fine-grained Background Representation for Weakly Supervised Semantic Segmentation that was published in IEEE TCSVT.
+# Overall Framework
+![overall framework](https://github.com/YininKorea/FBR/blob/4802ab1ee66f683d98deef9bb635c39b1988e621/architecture.PNG)
+>
 ###
 
 Requirements:
@@ -10,10 +12,10 @@ Requirements:
 ###
 
 Steps of experiments:
-* You can directly run the code by excuting the script script_contrast.sh on the script folder.
+* You can directly run the code by executing the script script_contrast.sh on the script folder.
 *  The steps consist of 
    *  Train the seeds
-   * Post processing with CRF
+   * Post-processing with CRF
    * Evaluation
    
 
