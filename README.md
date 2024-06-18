@@ -1,4 +1,4 @@
-# Reco_WSSS
+# FBR
 This is the implementation of Fine-grained Background Representation for Weakly Supervised Semantic Segmentation that was published in IEEE TCSVT.
 # Overall Framework
 ![overall framework](https://github.com/YininKorea/FBR/blob/4802ab1ee66f683d98deef9bb635c39b1988e621/architecture.PNG)
