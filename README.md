@@ -14,7 +14,7 @@ This is the official implementation of [Fine-grained Background Representation f
 Requirements:
 * [Pascal Voc](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/)
 * [Salience map](https://drive.google.com/file/d/19AjSmgdMlIZH4FXVZ5zjlUZcoZZCkwrI/view)
-* [Pretrained model for ResNet38 (on ImageNet)] (https://drive.google.com/file/d/15F13LEL5aO45JU-j45PYjzv5KW5bn_Pn/view)
+* [Pretrained model for ResNet38 (on ImageNet)](https://drive.google.com/file/d/1LzMIhXGjdiml0KbgTUH2xglSQelqpx0H/view?usp=drive_link)
 ###
 
 Steps of experiments:
