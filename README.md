@@ -49,5 +49,6 @@ on MS COCO 2014
 [Pseudo labels](https://drive.google.com/file/d/1ZFowMQkvFBWQyPnlQC3WtPZr6ykFFLqb/view?usp=sharing)
 
 
-License
+License:
+
 This project is released under the MIT License.
