@@ -47,3 +47,7 @@ on MS COCO 2014
 [Checkpoints](https://drive.google.com/file/d/1CKkKk72nowWnsVYFPxt9kNk50k3eWVu2/view?usp=sharing)
 
 [Pseudo labels](https://drive.google.com/file/d/1ZFowMQkvFBWQyPnlQC3WtPZr6ykFFLqb/view?usp=sharing)
+
+
+License
+This project is released under the MIT License.
